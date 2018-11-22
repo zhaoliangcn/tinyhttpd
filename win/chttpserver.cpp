@@ -153,8 +153,74 @@ void ChttpServer::CloseSock() {
 	shutdown(mysock,SD_BOTH);
 	closesocket(mysock);
 }
+BOOL ChttpServer::ParseURI(PHTTPREQUEST req,char * URI)
+{
+	return FALSE;
+}
+HTTPHEADER * ChttpServer::FindHeader(PHTTPREQUEST req,char * headername)
+{
+	HTTPHEADER * header=req->headers;
+	while(header)
+	{
+		if(stricmp(header->headername,headername)==0)
+		{
+			break;
+		}
+		else
+		{
+			header=header->NextHeader;
+		}
+	} 
+	return header;
+}
 BOOL ChttpServer::ParseHeaders(PHTTPREQUEST req)
 {
+	char * headerpos = strstr(req->request,backreturn);
+	if(headerpos)
+	{
+		headerpos+=2;
+	}
+	char * headerend =  strstr(req->request,doublebackreturn);
+	if(headerpos && headerend)
+	{
+		
+		HTTPHEADER * header =new HTTPHEADER; 
+		req->headers = header; 
+		char * phead = headerpos;
+		while(phead<headerend)
+		{
+			char * sep = strstr(phead,":");
+			if(sep)
+			{
+				sep+=1;
+			} 
+			if(sep)
+			{
+				strncpy(header->headername,phead,sep-phead);
+				char * tempsep=strstr(sep,backreturn) ;
+				if(tempsep)
+				strncpy(header->headercontent,sep+1,tempsep-sep-1); 
+				_DbgPrint("HEADERNAME %s",header->headername);
+				_DbgPrint("HEADERDATA %s",header->headercontent);
+			}
+			phead=strstr(phead,backreturn);
+			if(phead)
+			{
+				phead+=2;
+				header->NextHeader =new HTTPHEADER; 
+				header=header->NextHeader ;
+			}
+			else
+			{
+				break;
+			}
+			
+		}
+	}
+	if(strcmp(&req->request[req->requestlen-4],doublebackreturn)==0)
+	{
+		_DbgPrint("no body ");
+	}
 	return FALSE;
 }
 void ChttpServer::ParseRequest() {
@@ -249,6 +315,11 @@ BOOL ChttpServer::ProcessGet(PHTTPREQUEST req) {
 	return TRUE;
 }
 BOOL ChttpServer::ProcessPost(PHTTPREQUEST req) {
+	HTTPHEADER * header_clength = FindHeader(req,HTTP_HEADER_CLENGTH);
+	if(header_clength)
+	{
+		_DbgPrint("%s %s ",HTTP_HEADER_CLENGTH,header_clength->headercontent);
+	}
 	return FALSE;
 }
 unsigned __stdcall ChttpServer::SockWorkingThreadFunc(void * param) {

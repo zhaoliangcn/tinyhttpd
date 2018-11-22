@@ -36,7 +36,9 @@ class ChttpServer
 		BOOL SockLoop();
 		void CloseSock();
 		virtual void ParseRequest();
+		BOOL ParseURI(PHTTPREQUEST req,char * URI);
 		BOOL ParseHeaders(PHTTPREQUEST req);
+		HTTPHEADER * FindHeader(PHTTPREQUEST req,char * headername);
 		BOOL ProcessGet(PHTTPREQUEST req);
 		BOOL ProcessPost(PHTTPREQUEST req); 
 		static unsigned __stdcall SockWorkingThreadFunc(void * param);	
