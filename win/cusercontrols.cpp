@@ -59,6 +59,7 @@ BOOL CUserControls::CreateUserControls()
                           	(HMENU)ID_EDIT1,                       // window menu handle
                           	hInstanceParent,                  // program instance handle
                           	NULL) ; 
+	return TRUE;
 }
 BOOL CUserControls::Init(HWND hwnd,HINSTANCE hInstance)
 {

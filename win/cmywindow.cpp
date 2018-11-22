@@ -51,6 +51,8 @@ BOOL CMyWindow::InitInstance(HINSTANCE thishInstance)
 	usrctls.Init(hwnd,hInstance);
 	usrctls.CreateUserControls();
 
+	return TRUE;
+
 }
 LRESULT CMyWindow::myWndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
@@ -177,6 +179,7 @@ BOOL CMyWindow::StartBackGroundThread()
     GetExitCodeThread( hth1, &dwExitCode );  // should be STILL_ACTIVE = 0x00000103 = 259
     _DbgPrint( "initial background thread 1 exit code %d",dwExitCode );    
     ResumeThread( hth1 );  
+	return TRUE;
 }
 BOOL CMyWindow::TerminateBackGroundThread()
 {

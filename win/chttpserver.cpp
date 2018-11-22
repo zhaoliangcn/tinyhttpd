@@ -241,7 +241,7 @@ BOOL ChttpServer::ProcessGet(PHTTPREQUEST req) {
 	return TRUE;
 }
 BOOL ChttpServer::ProcessPost(PHTTPREQUEST req) {
-
+	return FALSE;
 }
 unsigned __stdcall ChttpServer::SockWorkingThreadFunc(void * param) {
 	ChttpServer * pSock=(ChttpServer *)param;
