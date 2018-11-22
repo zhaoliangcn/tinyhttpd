@@ -104,7 +104,7 @@ BOOL ChttpServer::InitSock() {
 		return FALSE;
 	}
 	mysock=socket(AF_INET,SOCK_STREAM,0);
-	struct sockaddr_in my_addr; 
+	struct sockaddr_in my_addr;
 	my_addr.sin_family=AF_INET;
 	my_addr.sin_port=htons(80);
 	my_addr.sin_addr.s_addr = INADDR_ANY;
@@ -153,14 +153,23 @@ void ChttpServer::CloseSock() {
 	shutdown(mysock,SD_BOTH);
 	closesocket(mysock);
 }
+BOOL ChttpServer::ParseHeaders(PHTTPREQUEST req)
+{
+	return FALSE;
+}
 void ChttpServer::ParseRequest() {
 	PHTTPREQUEST req;
 	req=requestqueue.GetRequest();
 	char responsebuf[2048];
 	memset(responsebuf,0,sizeof(responsebuf));
 	if(req->request[0]=='G'&&req->request[1]=='E'&&req->request[2]=='T') {
-
+		req->requesttype = REQUEST_GET;
+		ParseHeaders(req);
 		ProcessGet(req);
+	} else if(req->request[0]=='P'&&req->request[1]=='O'&&req->request[2]=='S'&&req->request[3]=='T') {
+		req->requesttype = REQUEST_POST;
+		ParseHeaders(req);
+		ProcessPost(req);
 	} else {
 		sprintf(responsebuf,"HTTP/1.1 400 Invalid Request \r\n\r\n");
 		if(send(req->clientsocket ,responsebuf,strlen(responsebuf),0)==-1) {
@@ -174,30 +183,29 @@ void ChttpServer::ParseRequest() {
 	requestqueue.DeleteRequest(req);
 	return ;
 }
-	void ChttpServer::GetFileMimeType(char * filename,std::string &mimetype)
-	{
-		char fileext[MAX_PATH];
-		memset(fileext,0,sizeof(fileext));
-		char * ext=strrchr(filename,'.');
-		if(ext) {
-			memcpy(fileext,ext+1,strlen(ext)-1);
-		}
-		_DbgPrint("%s",fileext);
-		mimetype="text/plain";	
-		MIMETYPES::iterator it;
-		it = MimeTypes.find(fileext);
-		if(it != MimeTypes.end())
-			mimetype = (*it).second;
-		mimetype+=";charset=UTF8";	
-		_DbgPrint("%s",mimetype.c_str());
+void ChttpServer::GetFileMimeType(char * filename,std::string &mimetype) {
+	char fileext[MAX_PATH];
+	memset(fileext,0,sizeof(fileext));
+	char * ext=strrchr(filename,'.');
+	if(ext) {
+		memcpy(fileext,ext+1,strlen(ext)-1);
 	}
+	_DbgPrint("%s",fileext);
+	mimetype="text/plain";
+	MIMETYPES::iterator it;
+	it = MimeTypes.find(fileext);
+	if(it != MimeTypes.end())
+		mimetype = (*it).second;
+	mimetype+=";charset=UTF8";
+	_DbgPrint("%s",mimetype.c_str());
+}
 BOOL ChttpServer::ProcessGet(PHTTPREQUEST req) {
 	char responsebuf[2048];
 	memset(responsebuf,0,sizeof(responsebuf));
 	//sprintf(responsebuf,"HTTP/1.1 200 OK \r\nContent-Type: text/plain\r\nContent-Length: 54\r\n\r\n this is simple webpage!");
 	char filename[MAX_PATH];
 	memset(filename,0,sizeof(filename));
-	
+
 	int posstart = substrpos(req->request,' ',4);
 	if(posstart==5||posstart==-1||(posstart>MAX_PATH)) {
 		sprintf(filename,"%s%s",getserverroot(),"index.html");

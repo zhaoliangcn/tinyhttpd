@@ -2,13 +2,35 @@
 #define CHTTPREQUESTQUEUE_H
 #include <windows.h>
 #include <queue>
+#include <vector>
 using namespace std;
-typedef struct tag_httprequest
+
+#define REQUEST_GET (0)
+#define REQUEST_POST (1) 
+
+typedef struct _tag_httpheader
+{
+	char headername[128];
+	char headercontent[256];
+	_tag_httpheader * NextHeader;
+}HTTPHEADER,*PHTTPHEADER;
+
+typedef struct _tag_httprequest
 {
 	char request[4096];
 	int requestlen;
 	SOCKET  clientsocket;
+	BYTE requesttype;
+	HTTPHEADER * headers;
 }HTTPREQUEST,*PHTTPREQUEST;
+
+typedef struct _tag_httpresponse
+{
+	HTTPHEADER * headers;
+	SOCKET  clientsocket;
+	char * response_body;
+	int response_body_length;
+}HTTPRESPONSE,*PHTTPRESPONSE;
 
 typedef queue<PHTTPREQUEST> queueHTTPREQUEST;
 /*

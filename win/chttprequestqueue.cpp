@@ -34,6 +34,17 @@ PHTTPREQUEST CHttpRequestQueue::NewRequest()
 void CHttpRequestQueue::DeleteRequest(PHTTPREQUEST request)
 {
 	EnterCriticalSection(&cs2);
+	if(request->headers!=NULL)
+	{
+		HTTPHEADER * ht=request->headers;
+		while(ht)
+		{
+			HTTPHEADER * ht1=ht->NextHeader;
+			delete ht;
+			ht=ht1;				
+		}
+		request->headers=NULL;		
+	}
 	queueRequestunused.push(request);
 	LeaveCriticalSection(&cs2);
 	return ;
@@ -68,12 +79,34 @@ void CHttpRequestQueue::DestroyAll()
 	{
 		ptemp=queueRequest.front();
 		queueRequest.pop();
+		if(ptemp->headers!=NULL)
+		{
+			HTTPHEADER * ht=ptemp->headers;
+			while(ht)
+			{
+				HTTPHEADER * ht1=ht->NextHeader;
+				delete ht;
+				ht=ht1;				
+			}
+			ptemp->headers=NULL;
+		}
 		delete ptemp;
 	}
 	while(queueRequestunused.size()>0)
 	{
 		ptemp=queueRequestunused.front();
 		queueRequestunused.pop();
+		if(ptemp->headers!=NULL)
+		{
+			HTTPHEADER * ht=ptemp->headers;
+			while(ht)
+			{
+				HTTPHEADER * ht1=ht->NextHeader;
+				delete ht;
+				ht=ht1;				
+			}
+			ptemp->headers=NULL;
+		}
 		delete ptemp;
 	}
 	return ;
