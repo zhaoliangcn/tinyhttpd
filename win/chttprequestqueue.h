@@ -31,6 +31,14 @@ typedef struct _tag_httprequest
 	SOCKET  clientsocket;
 	BYTE requesttype;
 	HTTPHEADER * headers;
+	_tag_httprequest()
+	{
+		memset(request,0,sizeof(request));
+		requestlen=0;
+		clientsocket=-1;
+		requesttype=0;
+		headers=NULL;
+	}
 }HTTPREQUEST,*PHTTPREQUEST;
 
 typedef struct _tag_httpresponse
@@ -39,6 +47,13 @@ typedef struct _tag_httpresponse
 	SOCKET  clientsocket;
 	char * response_body;
 	int response_body_length;
+	_tag_httpresponse() 
+	{
+		headers=NULL;
+		clientsocket=-1;
+		response_body = NULL;
+		response_body_length = 0;
+	}
 }HTTPRESPONSE,*PHTTPRESPONSE;
 
 typedef queue<PHTTPREQUEST> queueHTTPREQUEST;

@@ -153,11 +153,23 @@ void ChttpServer::CloseSock() {
 	shutdown(mysock,SD_BOTH);
 	closesocket(mysock);
 }
-BOOL ChttpServer::ParseURI(PHTTPREQUEST req,char * URI)
+BOOL ChttpServer::ParseURI(PHTTPREQUEST req,char * URI,int& urisize)
 {
+	char * space = strstr(req->request," ");
+	char * sep = strrstr(req->request," HTTP/");
+	if(space && sep)
+	{
+		int size = sep-space-1;
+		if(urisize>=size)
+		{
+			strncpy(URI,space+1,size);
+			urisize=size;	
+			return TRUE;
+		}				
+	} 
 	return FALSE;
 }
-HTTPHEADER * ChttpServer::FindHeader(PHTTPREQUEST req,char * headername)
+HTTPHEADER * ChttpServer::FindHeader(PHTTPREQUEST req,const char * headername)
 {
 	HTTPHEADER * header=req->headers;
 	while(header)
@@ -266,21 +278,22 @@ void ChttpServer::GetFileMimeType(char * filename,std::string &mimetype) {
 	_DbgPrint("%s",mimetype.c_str());
 }
 BOOL ChttpServer::ProcessGet(PHTTPREQUEST req) {
+	char URI[512];
+	int urisize =512;
+	ParseURI(req,URI,urisize);
 	char responsebuf[2048];
 	memset(responsebuf,0,sizeof(responsebuf));
 	//sprintf(responsebuf,"HTTP/1.1 200 OK \r\nContent-Type: text/plain\r\nContent-Length: 54\r\n\r\n this is simple webpage!");
 	char filename[MAX_PATH];
 	memset(filename,0,sizeof(filename));
-
-	int posstart = substrpos(req->request,' ',4);
-	if(posstart==5||posstart==-1||(posstart>MAX_PATH)) {
-		sprintf(filename,"%s%s",getserverroot(),"index.html");
-	} else {
-		char filenametmp[MAX_PATH];
-		memset(filenametmp,0,sizeof(filenametmp));
-		memcpy(filenametmp,&req->request[5],posstart-5);
-		sprintf(filename,"%s%s",getserverroot(),filenametmp);
+	if(URI[0]=='/' && strlen(URI)>1)
+	{		
+		sprintf(filename,"%s%s",getserverroot(),&URI[1]);
 		_DbgPrint("%s",filename);
+	}
+	else
+	{
+		sprintf(filename,"%s%s",getserverroot(),"index.html");
 	}
 	_DbgPrint("%s",req->request);
 	std::string szContentType;
